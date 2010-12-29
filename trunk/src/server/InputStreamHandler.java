@@ -55,12 +55,13 @@ public class InputStreamHandler extends Thread {
 						writer.close();
 						return;
 					}
-					
+					System.out.println("van phun" + tv.getTag());
 					switch(state){
 						case START:
 							if(tv.getTag().equals(Tags.OPEN_CONN)){
 								userID = tv.getContent();
 								writer.print(Tags.OPEN_RES + userID + Tags.END_RES);
+								writer.flush();
 								writer.print(Tags.OPEN_SEND + "Hi " + userID + Tags.END_SEND);
 								System.out.println("Send: " + Tags.OPEN_SEND + "Hi " + userID + Tags.END_SEND);
 								writer.flush();

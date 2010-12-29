@@ -19,11 +19,9 @@ import common.Tags;
 public class ClientInputStreamHandler extends Thread {
 	private BufferedReader reader;
 	private PrintWriter writer;
-	//private String expectedTag;
 	private String serverID = "";
 	private String fileName = "";
 	private String fileData = "";
-	//private int msgcnt = 0;
 	private ChatWindow chatWin;
 	private boolean running = false;
 	private FileOutputStream out = null;

@@ -1,10 +1,10 @@
 package common;
 
 public class Tags {
-	public static final String OPEN_CONN = "<SESSTION_REQ>";
-	public static final String END_CONN = "</SESSTION_REQ>";
-	public static final String OPEN_RES = "<SESSTION_ACK>"; // chua hien thuc 2
-	public static final String END_RES = "</SESSTION_ACK>"; // voi cac tag lien
+	public static final String OPEN_CONN = "<SESSION_REQ>";
+	public static final String END_CONN = "</SESSION_REQ>";
+	public static final String OPEN_RES = "<SESSION_ACK>"; // chua hien thuc 2
+	public static final String END_RES = "</SESSION_ACK>"; // voi cac tag lien
 	public static final String OPEN_SEND = "<CHAT_MSG>";
 	public static final String END_SEND = "</CHAT_MSG>";
 	public static final String DISC = "<SESSION_CLOSE />";
