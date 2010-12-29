@@ -8,8 +8,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.io.UnsupportedEncodingException;
 import java.util.Random;
 
 import javax.swing.JFileChooser;
@@ -17,6 +16,7 @@ import javax.swing.SwingWorker;
 import javax.swing.text.DefaultCaret;
 
 
+import common.BlockingQueue;
 import common.Tags;
 import common.outputHandler;
 import fileHandler.FileHandler;
@@ -28,7 +28,8 @@ public class ChatWindow extends javax.swing.JFrame implements PropertyChangeList
 	private JFileChooser fc;
 	private Task task;
 	outputHandler vp;
-	Queue<String> qe = new LinkedList<String>();
+        private String name;
+        BlockingQueue<String> qe =  new BlockingQueue<String>();
 
 	/** Creates new form ChatWindow */
 	public ChatWindow() {
@@ -36,8 +37,9 @@ public class ChatWindow extends javax.swing.JFrame implements PropertyChangeList
 	}
 
 	public ChatWindow(String name, InputStream is, OutputStream os)
-			throws InterruptedException {
+			throws InterruptedException, UnsupportedEncodingException {
 		super();
+                this.name = name;
 		vp = new outputHandler(qe, os);
 		vp.start();
 		Thread.sleep(10);
@@ -233,14 +235,14 @@ public class ChatWindow extends javax.swing.JFrame implements PropertyChangeList
 	private void sendButtonActionPerformed(java.awt.event.ActionEvent evt) {
 		// TODO add your handling code here:
 		String text = textTX.getText();
-		display("Me: " + text);
+		display(name + ": " + text);
 
 		textTX.selectAll();
 		textTX.setText("");
 		// Make sure the new text is visible, even if there
 		// was a selection in the text area
 		String msg = Tags.OPEN_SEND + converString(text) + Tags.END_SEND;
-		qe.add(msg);
+		qe.push(msg);
 		System.out.println("add");
 		// writer.print(Tags.OPEN_SEND + text + Tags.END_SEND); ///
 		// NOTICE!!!/////////
@@ -260,7 +262,7 @@ public class ChatWindow extends javax.swing.JFrame implements PropertyChangeList
 			String f_req = Tags.OPEN_FILE_CONN + file.getName()
 					+ Tags.END_FILE_CONN;
 
-			qe.add(f_req);
+			qe.push(f_req);
 			System.out.println("add");
 			
 			displayTX.setCaretPosition(textTX.getDocument().getLength());

@@ -22,10 +22,8 @@ public class ClientSocketHandler extends Thread {
 				if(running == true){
 					ChatWindow frame = new ChatWindow("server", is, os);
 					frame.setVisible(true);
-					InputStreamHandler ish = new InputStreamHandler(frame,is, os);
+					InputStreamHandler ish = new InputStreamHandler("server", frame,is, os);
 					ish.start();
-					//Thread.sleep(10);
-					//while(frame.isVisible()){};
 					if(!frame.isVisible() || frame.isEnabled()== false) {
 						is.close();
 						os.close();
@@ -33,18 +31,15 @@ public class ClientSocketHandler extends Thread {
 						System.out.println("thread stop !!!!!");
 						this.stopByClosingSocket();
 					}
-					//csocket.close();
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
 			running = false;
 		}
-
 	}
+
 	public void stopByClosingSocket(){
 		running = false;
 		try{

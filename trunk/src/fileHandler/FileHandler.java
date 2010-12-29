@@ -5,15 +5,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Queue;
 
+import common.BlockingQueue;
 import common.Tags;
 
 
 public class FileHandler extends Thread{
-	private Queue<String> qe;
+	private BlockingQueue<String> qe;
 	private String fileName;
 	private FileInputStream in;
 	
-	public FileHandler(String fn, Queue<String> que){
+	public FileHandler(String fn, BlockingQueue<String> que){
 		this.qe = que;
 		this.fileName = fn;
 	}
@@ -34,14 +35,14 @@ public class FileHandler extends Thread{
 					i++;
 				}
 				val = Tags.OPEN_FILE_DATA + converString(val) + Tags.END_FILE_DATA;
-				qe.add(val);
+				qe.push(val);
 				Thread.sleep(5);
 				i = 0;
 				val = "";
 			}
 			in.close();
 			val = Tags.FILE_END;
-			qe.add(val);
+			qe.push(val);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
