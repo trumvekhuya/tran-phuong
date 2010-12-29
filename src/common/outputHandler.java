@@ -1,59 +1,53 @@
 package common;
 
-//import java.io.FileNotFoundException;
-//import java.io.FileOutputStream;
-//import java.io.IOException;
-
+import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.util.Queue;
+import java.io.UnsupportedEncodingException;
 import java.io.OutputStreamWriter;
 //import java.io.PrintWriter;
 
 public class outputHandler extends Thread {
 
-	//private FileOutputStream out = null;
-	//OutputStream out;
-	Queue<String> que;
-	private PrintWriter writer;
+	BlockingQueue<String> que;
+	private OutputStreamWriter writer;
 	private Boolean running = false;
 
-	public outputHandler(Queue<String> qe, OutputStream os) {
-		this.que = qe;
-		writer = new PrintWriter(new OutputStreamWriter(os));
-		
+	public outputHandler(BlockingQueue<String> qe, OutputStream os) throws UnsupportedEncodingException {
+            this.que = qe;
+            writer = new OutputStreamWriter(os, "UTF8");
 	}
 
+    @Override
 	public void run() {
 		// TODO
 		running = true;
 		try{
 			while (running) {
 				try{
-					if (!que.isEmpty()) {
-						String a = (String) que.poll();
-						System.out.println(a);
-						writer.print(a);
-						writer.flush();
-					}
-					//i++;
+					String a = (String) que.pop();
+					System.out.println(a);
+					writer.write(a);
+					writer.flush();
 				}
 				catch (Exception e){
+					System.out.println("close output handler");
 				}
-				Thread.sleep(2);
-				//System.out.println("aaa");
 			}
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		finally{
-			writer.close();
+		} 		finally{
+						try {
+							writer.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+						}
 		}
 	}
 	
-	public void stopByClosing() throws Exception{
-		this.writer.close();
-		running = false;
+	public void stopByClosing(){
+		try{
+			this.writer.close();
+			running = false;
+		}catch(Exception e){
+			
+		}
 	}
 }

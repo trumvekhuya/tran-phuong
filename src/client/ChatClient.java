@@ -17,7 +17,7 @@ public class ChatClient {
 			serverport = Integer.parseInt(args[1]);
 		}
 		try {
-			System.out.println("Connect to localhost on port" + serverport);
+			System.out.println("Connect to server on port" + serverport);
 			Socket s = new Socket(host, serverport);
 			InputStream is = s.getInputStream();
 			OutputStream os = s.getOutputStream();
@@ -26,10 +26,8 @@ public class ChatClient {
 				ChatWindow frame = new ChatWindow("client", is, os);
 				frame.setVisible(true);
 
-				ClientInputStreamHandler cish = new ClientInputStreamHandler(
-						frame, is, os);
+				ClientInputStreamHandler cish = new ClientInputStreamHandler("client", frame, is, os);
 				cish.start();
-				//Thread.sleep(10);
 
 				while (!frame.isVisible() || !frame.isEnabled()) {
 					is.close();
@@ -38,14 +36,11 @@ public class ChatClient {
 					System.out.println("thread stop !!!!!");
 				}
 			} catch (Exception e) {
-				e.printStackTrace();
 			}
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 }

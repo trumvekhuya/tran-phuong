@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 
 import common.ContentFormatExeption;
@@ -18,9 +19,10 @@ import common.Tags;
 
 public class InputStreamHandler extends Thread {
 	private BufferedReader reader;
-	private PrintWriter writer;
+	private OutputStreamWriter writer;
 	//private String expectedTag;
 	private String userID = "";
+        private String serverID = "";
 	private String fileName = "";
 	private String fileData = "";
 	//private int msgcnt = 0;
@@ -31,114 +33,106 @@ public class InputStreamHandler extends Thread {
 	public enum State {START, CHAT, FILE_REQ, FILE_DATA};
 	private State state;
 	
-	public InputStreamHandler(ChatWindow cw, InputStream is, OutputStream os){
-		chatWin = cw;
-		reader = new BufferedReader(new InputStreamReader(is));
-		writer = new PrintWriter(new OutputStreamWriter(os));
-		state = State.START;
+	public InputStreamHandler(String sName, ChatWindow cw, InputStream is, OutputStream os) throws UnsupportedEncodingException{
+            serverID = sName;
+            chatWin = cw;
+            reader = new BufferedReader(new InputStreamReader(is, "UTF8"));
+            writer = new OutputStreamWriter(os, "UTF8");
+            state = State.START;
 	}
 	public void run(){
-		running = true;
-		try{
-			int c = reader.read();
-			while (c != -1 && running == true){
-				TagValue tv;
-				
-				try {
-					tv = this.getTagValue(c);
-					
-					if (tv.getTag().equals(Tags.DISC)){
-						writer.print(Tags.DISC);
-						System.out.println("Send: " + Tags.DISC);
-						writer.flush();
-						reader.close();
-						writer.close();
-						return;
-					}
-					System.out.println("van phun" + tv.getTag());
-					switch(state){
-						case START:
-							if(tv.getTag().equals(Tags.OPEN_CONN)){
-								userID = tv.getContent();
-								writer.print(Tags.OPEN_RES + userID + Tags.END_RES);
-								writer.flush();
-								writer.print(Tags.OPEN_SEND + "Hi " + userID + Tags.END_SEND);
-								System.out.println("Send: " + Tags.OPEN_SEND + "Hi " + userID + Tags.END_SEND);
-								writer.flush();
-								state = State.CHAT;
-							}
-							else{
-								System.out.println("Expected!!!" + Tags.OPEN_CONN);
-							}
-							break;
-						case CHAT:
-							if(tv.getTag().equals(Tags.OPEN_SEND)){
-								chatWin.display("Received: " + tv.getContent());
-							}
-							else if(tv.getTag().equals(Tags.OPEN_FILE_CONN)){
-								System.out.println("Receiving file ");
-								fileName = tv.getContent();
-								writer.print(Tags.OPEN_FILE_RES + fileName + Tags.END_FILE_RES);
-								state = State.FILE_REQ;
-								writer.print(Tags.OPEN_SEND + "I'm receiving: " + fileName + Tags.END_SEND);
-								System.out.println("Receiving file ");
-								writer.flush();
-							}
-							else if(tv.getTag().equals(Tags.OPEN_FILE_RES)){
-								writer.print(Tags.FILE_BEGIN);
-								writer.flush();
-							}
-							else{
-								System.out.println("Expected!!!" + Tags.OPEN_SEND);
-							}
-							break;
-						case FILE_REQ:
-							if(tv.getTag().equals(Tags.OPEN_SEND)){
-								chatWin.display("Received: " + tv.getContent());
-							}
-							else if(tv.getTag().equals(Tags.FILE_BEGIN)){
-								out = new FileOutputStream("d:/dst.txt");
-								System.out.println("open destination");
-								state = State.FILE_DATA;
-							}
-							else{
-								System.out.println("Expected!!!" + Tags.OPEN_SEND);
-							}
-							break;
-						case FILE_DATA:
-							if(tv.getTag().equals(Tags.OPEN_SEND)){
-								chatWin.display("Received: " + tv.getContent());
-							}
-							else if(tv.getTag().equals(Tags.OPEN_FILE_DATA)){
-								fileData = tv.getContent();
-								out.write(fileData.getBytes());
-							}
-							else if(tv.getTag().equals(Tags.FILE_END)){
-								out.close();
-								state = State.CHAT;
-							}
-							else{
-								System.out.println("Not expected!!!");
-							}
-							break;
-					}
-				} catch (TagFormatException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					writer.print(Tags.OPEN_SEND + "Malformed message received" + Tags.END_SEND);
-					writer.flush();
-					System.out.println("Send: " + Tags.OPEN_SEND + "Malformed message received" + Tags.END_SEND);
-				} catch (ContentFormatExeption e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} 
-				c = reader.read();
-			}
-		}catch(IOException ioe){
-			ioe.printStackTrace();
-			running = false;
-		}
-	}
+        running = true;
+        try{
+            int c = reader.read();
+            while (c != -1 && running == true){
+                TagValue tv;
+
+                try {
+                    tv = this.getTagValue(c);
+
+                    if (tv.getTag().equals(Tags.DISC)){
+                            writer.write(Tags.DISC);
+                            writer.flush();
+                            reader.close();
+                            writer.close();
+                            return;
+                    }
+                    switch(state){
+                            case START:
+                                    if(tv.getTag().equals(Tags.OPEN_CONN)){
+                                            userID = tv.getContent();
+                                            writer.write(Tags.OPEN_RES + serverID + Tags.END_RES);
+                                            writer.flush();
+                                            writer.write(Tags.OPEN_SEND + "Hi " + userID + Tags.END_SEND);
+                                            writer.flush();
+                                            state = State.CHAT;
+                                    }
+                                    else{
+                                            System.out.println("Expected!!!" + Tags.OPEN_CONN);
+                                    }
+                                    break;
+                            case CHAT:
+                                    if(tv.getTag().equals(Tags.OPEN_SEND)){
+                                            chatWin.display(userID + ": " + tv.getContent());
+                                    }
+                                    else if(tv.getTag().equals(Tags.OPEN_FILE_CONN)){
+                                            System.out.println("Receiving file ");
+                                            fileName = tv.getContent();
+                                            writer.write(Tags.OPEN_FILE_RES + fileName + Tags.END_FILE_RES);
+                                            state = State.FILE_REQ;
+                                            writer.write(Tags.OPEN_SEND + "I'm receiving: " + fileName + Tags.END_SEND);
+                                            System.out.println("Receiving file ");
+                                            writer.flush();
+                                    }
+                                    else if(tv.getTag().equals(Tags.OPEN_FILE_RES)){
+                                            writer.write(Tags.FILE_BEGIN);
+                                            writer.flush();
+                                    }
+                                    else{
+                                            System.out.println("Expected!!!" + Tags.OPEN_SEND);
+                                    }
+                                    break;
+                            case FILE_REQ:
+                                    if(tv.getTag().equals(Tags.OPEN_SEND)){
+                                            chatWin.display(userID + ": " + tv.getContent());
+                                    }
+                                    else if(tv.getTag().equals(Tags.FILE_BEGIN)){
+                                            out = new FileOutputStream("d:/dst.txt");
+                                            System.out.println("open destination");
+                                            state = State.FILE_DATA;
+                                    }
+                                    else{
+                                            System.out.println("Expected!!!" + Tags.OPEN_SEND);
+                                    }
+                                    break;
+                            case FILE_DATA:
+                                    if(tv.getTag().equals(Tags.OPEN_SEND)){
+                                            chatWin.display(userID + ": " + tv.getContent());
+                                    }
+                                    else if(tv.getTag().equals(Tags.OPEN_FILE_DATA)){
+                                            fileData = tv.getContent();
+                                            out.write(fileData.getBytes());
+                                    }
+                                    else if(tv.getTag().equals(Tags.FILE_END)){
+                                            out.close();
+                                            state = State.CHAT;
+                                    }
+                                    else{
+                                            System.out.println("Not expected!!!");
+                                    }
+                                    break;
+                    }
+                } catch (TagFormatException e) {
+                        // TODO Auto-generated catch block
+                } catch (ContentFormatExeption e) {
+                        // TODO Auto-generated catch block
+                }
+                c = reader.read();
+            }
+        }catch(IOException ioe){
+                running = false;
+        }
+    }
 	
 	public void stopByClosingSocket(Socket s){
 		running = false;
